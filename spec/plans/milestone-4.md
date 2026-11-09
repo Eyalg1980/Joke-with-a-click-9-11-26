@@ -128,3 +128,4 @@ grant execute on function public.add_laugh(uuid) to service_role;
 - `/api/top` אחרי הצחוק: הבדיחה החדשה ברשימה, ועדיין חמש בלבד.
 - קוד הדף: אין בו `supabase`.
 - המפתח הציבורי (publishable) מול Supabase: הקריאה לטבלה וה-rpc ל-`add_laugh` נכשלים עם `42501 permission denied`. ‏Supabase מציע `GRANT SELECT ... TO anon`, ולא מקבלים את ההצעה.
+- אושר.
