@@ -190,6 +190,113 @@
       font-weight: 600;
     }
 
+    /* "צחקתי": גלולה קטנה בתוך הבועה, מתחת לבדיחה */
+    .laugh-row {
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .laugh-row[hidden] { display: none; }
+
+    .laugh-btn {
+      min-height: 44px;
+      padding: 6px 18px;
+      font: 700 18px var(--ui-font);
+      color: var(--ink);
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      box-shadow: 0 4px 0 var(--ink);
+      cursor: pointer;
+      transform: rotate(1.5deg);
+      transition: transform 0.08s, box-shadow 0.08s;
+    }
+
+    .laugh-btn:active:not(:disabled) {
+      transform: translateY(3px) rotate(1.5deg);
+      box-shadow: 0 1px 0 var(--ink);
+    }
+
+    .laugh-btn:disabled { cursor: default; }
+
+    .laugh-btn[data-done="true"] {
+      background: var(--sun);
+      transform: translateY(3px) rotate(1.5deg);
+      box-shadow: 0 1px 0 var(--ink);
+    }
+
+    .laugh-btn:focus-visible {
+      outline: 4px solid var(--blue);
+      outline-offset: 3px;
+    }
+
+    .laugh-error {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--error);
+    }
+
+    /* "הכי מצחיקות" */
+    .top {
+      margin-top: 10px;
+      padding: 18px 20px 20px;
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      border-radius: 28px;
+      box-shadow: 6px 6px 0 var(--ink);
+      transform: rotate(0.8deg);
+    }
+
+    .top h2 {
+      margin: 0 0 10px;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .top ol {
+      margin: 0;
+      padding: 0 22px 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .top li {
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .top .top-text {
+      display: block;
+      font-family: var(--joke-font);
+      font-weight: 500;
+      font-size: 19px;
+      line-height: 1.5;
+    }
+
+    .top .top-count {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 1px 10px;
+      font-size: 14px;
+      font-weight: 600;
+      background: var(--sun);
+      border: 2px solid var(--ink);
+      border-radius: 999px;
+    }
+
+    .top .top-note {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--ink-soft);
+      line-height: 1.4;
+    }
+
     footer {
       margin-top: auto;
       padding-top: 10px;
@@ -229,6 +336,17 @@
     <section class="bubble" id="bubble" data-state="idle" aria-label="הבדיחה">
       <img class="mascot" id="mascot" src="assets/mascot-idle.svg" width="120" height="112" alt="הכפתור מחייך ומחכה">
       <p class="message" id="message" aria-live="polite">לוחצים על הכפתור, והבדיחה מופיעה כאן</p>
+      <div class="laugh-row" id="laugh-row" hidden>
+        <button class="laugh-btn" id="laugh-btn" type="button">צחקתי · 0</button>
+        <p class="laugh-error" id="laugh-error" role="status"></p>
+      </div>
+    </section>
+
+    <section class="top" aria-labelledby="top-title">
+      <h2 id="top-title">הכי מצחיקות</h2>
+      <div id="top-list" aria-live="polite">
+        <p class="top-note">טוען...</p>
+      </div>
     </section>
 
     <footer>מיישם AI ואוטומציה · 53500</footer>
@@ -241,6 +359,12 @@
     const bubble = document.getElementById('bubble');
     const mascot = document.getElementById('mascot');
     const message = document.getElementById('message');
+    const laughRow = document.getElementById('laugh-row');
+    const laughBtn = document.getElementById('laugh-btn');
+    const laughError = document.getElementById('laugh-error');
+    const topList = document.getElementById('top-list');
+
+    let currentJokeId = null;
 
     const STATES = {
       idle:  { img: 'mascot-idle.svg',  alt: 'הכפתור מחייך ומחכה', button: 'תנו לי בדיחה!' },
@@ -261,11 +385,87 @@
       button.setAttribute('aria-busy', String(busy));
     }
 
+    // כפתור "צחקתי" רק לבדיחה שנשמרה, כלומר שיש לה id
+    function showLaugh(id) {
+      currentJokeId = id || null;
+      laughError.textContent = '';
+      laughBtn.disabled = false;
+      laughBtn.dataset.done = 'false';
+      laughBtn.textContent = 'צחקתי · 0';
+      laughRow.hidden = !currentJokeId;
+    }
+
+    laughBtn.addEventListener('click', async () => {
+      if (!currentJokeId || laughBtn.disabled) return;
+      const id = currentJokeId;
+      laughBtn.disabled = true;
+      laughError.textContent = '';
+      try {
+        const res = await fetch('/api/laugh', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (id !== currentJokeId) return; // בינתיים הגיעה בדיחה חדשה
+        if (res.ok && typeof data.laughs === 'number') {
+          laughBtn.dataset.done = 'true';
+          laughBtn.textContent = `צחקת! · ${data.laughs}`;
+          loadTop();
+        } else {
+          laughError.textContent = data.error || 'הצחוק לא נשמר. נסו שוב.';
+          laughBtn.disabled = false;
+        }
+      } catch {
+        if (id !== currentJokeId) return;
+        laughError.textContent = 'אין חיבור לשרת כרגע. נסו שוב.';
+        laughBtn.disabled = false;
+      }
+    });
+
+    function topNote(text) {
+      const p = document.createElement('p');
+      p.className = 'top-note';
+      p.textContent = text;
+      topList.replaceChildren(p);
+    }
+
+    async function loadTop() {
+      try {
+        const res = await fetch('/api/top');
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !Array.isArray(data.jokes)) {
+          topNote(data.error || 'אי אפשר לטעון את הרשימה כרגע.');
+          return;
+        }
+        if (data.jokes.length === 0) {
+          topNote('עוד אין כאן בדיחות. צחקו על אחת, והיא תופיע כאן.');
+          return;
+        }
+        const ol = document.createElement('ol');
+        for (const j of data.jokes) {
+          const li = document.createElement('li');
+          const text = document.createElement('span');
+          text.className = 'top-text';
+          text.textContent = j.text;
+          const count = document.createElement('span');
+          count.className = 'top-count';
+          count.textContent = j.laughs === 1 ? 'צחוק אחד' : `${j.laughs} צחוקים`;
+          li.append(text, count);
+          ol.append(li);
+        }
+        topList.replaceChildren(ol);
+      } catch {
+        topNote('אין חיבור לשרת כרגע.');
+      }
+    }
+
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       if (button.disabled) return;
 
       const topic = input.value.trim().slice(0, 100);
+      showLaugh(null);
       setState('think', topic ? `מחפש בדיחה על ${topic}...` : 'מחפש בדיחה...');
 
       try {
@@ -277,6 +477,7 @@
         const data = await res.json().catch(() => ({}));
         if (res.ok && typeof data.joke === 'string') {
           setState('joke', data.joke);
+          showLaugh(typeof data.id === 'string' ? data.id : null);
         } else {
           setState('error', data.error || 'משהו השתבש. נסו שוב.');
         }
@@ -284,6 +485,8 @@
         setState('error', 'אין חיבור לשרת כרגע. נסו שוב.');
       }
     });
+
+    loadTop();
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

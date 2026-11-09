@@ -1,5 +1,6 @@
-// Milestone 2: בדיחה מ-GPT-5 דרך Responses API.
-// המפתח נקרא רק כאן, מ-process.env, ולעולם לא חוזר לדפדפן.
+// בדיחה מ-GPT-5 דרך Responses API, ושמירה שלה ב-Supabase.
+// המפתח של OpenAI נקרא רק כאן, מ-process.env, ולעולם לא חוזר לדפדפן.
+import { getSupabase } from '../lib/supabase.js';
 
 const OPENAI_URL = 'https://api.openai.com/v1/responses';
 
@@ -116,6 +117,28 @@ export default {
       return errorResponse('empty', 502);
     }
 
-    return Response.json({ joke });
+    const id = await saveJoke(topic, joke);
+    return Response.json(id ? { joke, id } : { joke });
   },
 };
+
+// שומר את הבדיחה בטבלה ומחזיר את ה-id. כשל: null, והבדיחה עדיין מגיעה למשתמש.
+async function saveJoke(topic, text) {
+  try {
+    const supabase = getSupabase();
+    if (!supabase) return null;
+    const { data, error } = await supabase
+      .from('jokes')
+      .insert({ topic: topic || null, text })
+      .select('id')
+      .single();
+    if (error) {
+      console.error(`save joke failed: code=${error.code}, message=${error.message}`);
+      return null;
+    }
+    return data.id;
+  } catch (err) {
+    console.error(`save joke failed: ${err?.name}: ${err?.message}`);
+    return null;
+  }
+}
