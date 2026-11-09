@@ -119,3 +119,12 @@ grant execute on function public.add_laugh(uuid) to service_role;
 
 ### פריסה
 - ב-Vercel, בפרויקט `jokewithaclick91126`, כבר היו `SUPABASE_URL` (Config, בשלוש הסביבות) ו-`SUPABASE_SECRET_KEY` (Secret, רק ב-Production. ב-Preview עוד חסר).
+- נדחף ל-main (‏`5387ba2`), ונפרס לבד: https://jokewithaclick91126.vercel.app
+
+### נבדק בפרודקשן
+- `/api/top`: חמש בדיחות הדוגמה, מ-5 עד 1.
+- `/api/joke`: בדיחה אמיתית עם `id`, והשורה נשמרה בטבלה.
+- `/api/laugh` עם `abc`: ‏400, ‏"הבדיחה לא מזוהה.". עם ה-id החדש: ‏`{"laughs":1}`.
+- `/api/top` אחרי הצחוק: הבדיחה החדשה ברשימה, ועדיין חמש בלבד.
+- קוד הדף: אין בו `supabase`.
+- המפתח הציבורי (publishable) מול Supabase: הקריאה לטבלה וה-rpc ל-`add_laugh` נכשלים עם `42501 permission denied`. ‏Supabase מציע `GRANT SELECT ... TO anon`, ולא מקבלים את ההצעה.
