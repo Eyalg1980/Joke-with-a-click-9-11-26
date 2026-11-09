@@ -1,7 +1,7 @@
 # MILESTONES: בדיחה בלחיצה
 כלל: בסוף כל Milestone ה-AI עוצר, וממתין לבדיקה ולאישור מפורש שלי לפני שהוא ממשיך.
 
-שלושה Milestones, כשעתיים בסך הכל. את המפתחות של OpenAI אף פעם לא נותנים ל-Claude: מפתח ה-production עובר ישר מ-OpenAI ל-Vercel, ומפתח ה-dev מודבק ביד ב-.env.local.
+ארבעה Milestones. שלושת הראשונים כשעתיים בסך הכל. את המפתחות של OpenAI אף פעם לא נותנים ל-Claude: מפתח ה-production עובר ישר מ-OpenAI ל-Vercel, ומפתח ה-dev מודבק ביד ב-.env.local.
 
 איפה מריצים: הבחירה שלי. אפשר לבדוק כל Milestone בכתובת של Vercel אחרי push, ואפשר גם להריץ במחשב עם vercel dev. הקוד זהה בשני המקרים.
 
@@ -69,3 +69,52 @@
   3. בתוך האפליקציה המותקנת מגיעה בדיחה חדשה בכל לחיצה.
   4. ב-Application ואז Cache Storage אין אף כתובת של /api.
   5. שינוי קטן בטקסט, push, ורענון: השינוי מופיע.
+
+## Milestone 4: האפליקציה זוכרת
+- המטרה: כל בדיחת AI נשמרת ב-Supabase. אפשר לצחוק עליה, ורואים את "הכי מצחיקות". רק הפונקציות בתיקיית api מדברות עם Supabase, והדף מדבר רק עם /api.
+- מה רואים בדף:
+  - מתחת לכל בדיחת AI: כפתור "צחקתי" עם מונה. אחרי לחיצה הכפתור ננעל.
+  - רשימת "הכי מצחיקות": חמש הבדיחות עם הכי הרבה צחוקים, רק כאלה עם צחוק אחד לפחות. הרשימה מתעדכנת אחרי כל צחוק, בלי polling.
+- הטבלה, דרך המחבר של Supabase:
+  - אם יש יותר מפרויקט אחד: Claude שואל באיזה לעבוד.
+  - migration בשם `create_jokes`, עם הטבלה `public.jokes` וחמש עמודות:
+
+    | העמודה | הסוג | הגדרה |
+    |---|---|---|
+    | id | uuid | מפתח ראשי, ברירת מחדל `gen_random_uuid()` |
+    | created_at | timestamptz | ברירת מחדל `now()` |
+    | topic | text | |
+    | text | text | חובה |
+    | laughs | integer | חובה, ברירת מחדל 0 |
+
+- הנעילה, כדי שרק השרת ייגש לטבלה:
+  - RLS דולק, בלי אף policy.
+  - `grant select, insert, update` על הטבלה ל-service_role בלבד.
+  - `revoke all` מ-anon ומ-authenticated.
+- ספירת הצחוקים, כדי ששתי לחיצות באותו רגע לא ידרסו זו את זו:
+  - הפונקציה `public.add_laugh(joke_id uuid)`: מוסיפה 1 למונה בעדכון אחד, ומחזירה את המספר החדש.
+  - בתוכה: security invoker, ‏search_path ריק, ושמות מלאים כמו `public.jokes`.
+  - הרשאות: `revoke execute` מ-public, ‏anon ו-authenticated, ו-`grant execute` ל-service_role.
+- עצירה ראשונה, סביב ה-SQL:
+  - ה-SQL נשמר גם כקובץ `db/create_jokes.sql`, ו-Claude מציג אותו לפני ההרצה.
+  - אחרי ההרצה: Claude מריץ get_advisors, מסביר בעברית מה נמצא, ועוצר. אני בודק שהטבלה נעולה.
+- הקוד בשרת:
+  - לקוח אחד בקובץ `lib/supabase.js`, מהחבילה `@supabase/supabase-js`, ב-dependencies של package.json. הכתובת מ-`process.env.SUPABASE_URL`, והמפתח מ-`process.env.SUPABASE_SECRET_KEY`.
+  - `api/joke.js` שומרת כל בדיחת AI בטבלה, ומחזירה `{ "joke": "...", "id": "..." }`. אם השמירה נכשלת, הבדיחה עדיין מגיעה למשתמש, בלי id, והשגיאה נרשמת ב-console.error.
+  - `api/laugh.js` מקבלת POST עם `{ "id": "..." }`, בודקת שזה uuid, וקוראת ל-add_laugh דרך rpc. מחזירה `{ "laughs": N }`.
+  - `api/top.js` מחזירה את רשימת "הכי מצחיקות": `{ "jokes": [ { "id", "text", "laughs" } ] }`.
+- עצירה שנייה, לפני הדחיפה:
+  - Claude עוצר לפני ה-push. אני שם ב-Vercel את `SUPABASE_URL` מסוג Config ואת `SUPABASE_SECRET_KEY` מסוג Secret, בסביבות Production ו-Preview. Claude לא מבקש את המפתח.
+  - בשביל הרצה מקומית: מוסיפים ביד ל-.env.local את השורה `SUPABASE_SECRET_KEY=` עם המפתח, ואת `SUPABASE_URL` שומרים ב-Vercel גם בסביבת Development.
+  - service worker: מעלים את הגרסה ב-sw.js, כדי שהדף החדש ייטען.
+- התוצר המצופה: בדיחה עם כפתור "צחקתי", ורשימת "הכי מצחיקות" שמתמלאת.
+- תנאי השלמה (Definition of Done):
+  1. בדיחה חדשה מופיעה בטבלה `public.jokes`, עם הנושא והטקסט, ו-laughs שווה 0.
+  2. לחיצה על "צחקתי" מעלה את המונה ב-1, והכפתור ננעל.
+  3. הבדיחה עולה לרשימת "הכי מצחיקות" מיד אחרי הצחוק. בלשונית Network אין בקשות שחוזרות לבד.
+  4. ברשימה לכל היותר חמש בדיחות, כולן עם צחוק אחד לפחות, מהגבוהה לנמוכה.
+  5. `/api/laugh` עם id שאינו uuid מחזיר שגיאה בעברית, ולא נוגע בטבלה.
+  6. בלשונית Network יש בקשות רק ל-/api, ואין אף בקשה לכתובת של Supabase. חיפוש בקוד הדף על `supabase` לא מוצא כלום.
+  7. get_advisors לא מראה בעיית אבטחה בטבלה. קריאה לטבלה עם המפתח הציבורי נכשלת.
+  8. אם Supabase לא זמין, הבדיחה עדיין מגיעה, ושגיאה נרשמת ב-Logs.
+  9. בריפו יש `db/create_jokes.sql`, ו-.env.example מכיל רק `OPENAI_API_KEY=` ו-`SUPABASE_SECRET_KEY=`, בלי ערכים.

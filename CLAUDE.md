@@ -19,9 +19,19 @@
 - מפתח ה-production נשמר אצלי ב-Vercel, מסוג Secret, בסביבות Production ו-Preview.
 - את מפתח ה-dev אני מדביק בעצמי ב-`.env.local`.
 - `.claude/settings.json` חוסם קריאה של `.env` ושל `.env.*`. אסור לעקוף את החסימה, גם לא דרך shell (cat, type, Get-Content וכדומה).
-- `.env.example` מכיל רק את השורה `OPENAI_API_KEY=`, בלי ערך ובלי הערות.
+- `.env.example` מכיל רק את השורות `OPENAI_API_KEY=` ו-`SUPABASE_SECRET_KEY=`, בלי ערכים ובלי הערות.
 - `.gitignore` מתעלם מ-`.env`, מ-`.env.*`, מ-`.vercel` ומ-`node_modules`, עם החריגה `!.env.example`.
 - הקוד קורא את המפתח רק מ-`process.env.OPENAI_API_KEY`, ורק בתוך `api/joke.js`.
+- את `SUPABASE_SECRET_KEY` אני שם בעצמי ב-Vercel, מסוג Secret, בסביבות Production ו-Preview. `SUPABASE_URL` נשמר ב-Vercel מסוג Config.
+- הקוד קורא את `process.env.SUPABASE_URL` ואת `process.env.SUPABASE_SECRET_KEY` רק בתוך `lib/supabase.js`.
+
+## נתונים: Supabase (מ-Milestone 4)
+- השמירה ב-Supabase, בטבלה `public.jokes`. הפירוט ב-`spec/ARCHITECTURE.md`.
+- רק הפונקציות בתיקיית `api` מדברות עם Supabase, דרך הלקוח היחיד ב-`lib/supabase.js`. הדף מדבר רק עם `/api`: אין בו כתובת, מפתח או חבילה של Supabase.
+- הטבלה נעולה: RLS דולק בלי policy, ‏grant רק ל-service_role, ‏revoke all מ-anon ומ-authenticated. לא מקבלים הצעה של Supabase להוסיף policy או grant ל-anon.
+- מונה הצחוקים מתעדכן רק דרך הפונקציה `public.add_laugh`, ב-rpc.
+- כל SQL נשמר גם כקובץ בתיקיית `db/`, ומוצג לי לפני ההרצה.
+- בכל שינוי בדף מעלים את גרסת המטמון ב-`sw.js`.
 
 ## Git ופריסה
 - ריפו ציבורי: https://github.com/Eyalg1980/Joke-with-a-click-9-11-26, ענף `main` בלבד.
