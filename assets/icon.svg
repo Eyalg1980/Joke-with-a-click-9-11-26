@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>בדיחה בלחיצה</title>
+  <defs><pattern id="dots" width="32" height="32" patternUnits="userSpaceOnUse"><circle cx="16" cy="16" r="3.2" fill="#E8AA00" fill-opacity=".32"/></pattern></defs>
+  <rect width="512" height="512" fill="#FFE15A"/>
+  <rect width="512" height="512" fill="url(#dots)"/>
+  <g transform="translate(58.0 72) scale(3.3)">
+  <!-- base plate -->
+  <ellipse cx="60" cy="96" rx="54" ry="14" fill="#2B1E4A"/>
+  <ellipse cx="60" cy="90" rx="47" ry="12" fill="#6B5B9A" stroke="#2B1E4A" stroke-width="3"/>
+  <!-- the red button -->
+  <path d="M20 88V52a40 32 0 0 1 80 0v36a40 11 0 0 1-80 0z" fill="#F23D2F" stroke="#2B1E4A" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M23 80a37 10 0 0 0 74 0v8a40 11 0 0 1-77 0z" fill="#C92A20"/>
+  <ellipse cx="42" cy="34" rx="11" ry="5" transform="rotate(-22 42 34)" fill="#FFFFFF" opacity=".85"/>
+  <!-- cheeks -->
+  <ellipse cx="34" cy="70" rx="6" ry="3.5" fill="#FF8FB8"/>
+  <ellipse cx="86" cy="70" rx="6" ry="3.5" fill="#FF8FB8"/>
+  <!-- face: happy closed eyes, big laugh, tears of joy -->
+  <path d="M38 60q8-10 16 0M66 60q8-10 16 0" fill="none" stroke="#2B1E4A" stroke-width="4" stroke-linecap="round"/>
+  <path d="M46 68h28q-2 16-14 16t-14-16z" fill="#2B1E4A" stroke="#2B1E4A" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M52 79q8-6 16 0q-8 6-16 0z" fill="#FF5FA8"/>
+  <path d="M30 60q-6 8-1 12q5-2 1-12z" fill="#2E9BFF" stroke="#2B1E4A" stroke-width="2"/>
+  <path d="M90 60q6 8 1 12q-5-2-1-12z" fill="#2E9BFF" stroke="#2B1E4A" stroke-width="2"/>
+  </g>
+</svg>
