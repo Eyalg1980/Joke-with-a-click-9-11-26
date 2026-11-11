@@ -138,3 +138,6 @@ create index jokes_user_id_idx on public.jokes (user_id);
 - `/api/joke` עם טוקן מזויף: ‏401 עם `auth_required`, בלי בדיחה. זה מוכיח ש-getUser מול Supabase האמיתי עובד.
 - `/api/delete-account` בלי טוקן: ‏401. ‏`/api/top`: עובד כמו קודם.
 - `SUPABASE_SECRET_KEY` ו-`OPENAI_API_KEY` מוגדרים רק ב-Production. זו בחירה: העבודה רק בסביבת Production, ולכן הסודות לא נוספים ל-Preview ול-Development.
+
+### אישור
+- בדקת את שמונת תנאי ההשלמה בפרודקשן. Milestone 5 אושר ב-11.11.2026.
