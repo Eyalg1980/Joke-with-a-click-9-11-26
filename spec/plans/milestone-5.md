@@ -129,4 +129,12 @@ create index jokes_user_id_idx on public.jokes (user_id);
 
 ### שלב ד: Vercel
 - לבקשתך, Claude הוסיף את `SUPABASE_PUBLISHABLE_KEY` דרך המחבר של Vercel: הערך `sb_publishable_` מ-`get_publishable_keys`, מסוג plain (Config), בשלוש הסביבות. הוא לא נכנס לשום קובץ.
+- נדחף ל-main (‏`4d4f2a3`), ונפרס לבד: https://jokewithaclick91126.vercel.app
+
+### נבדק בפרודקשן
+- `/api/config`: ‏200, ‏`no-store`, רק `url` ו-`publishableKey`.
+- קוד הדף ו-`/auth.js`: אין `sb_publishable_` ואין `sb_secret_`. הספרייה נטענת מ-jsDelivr ב-2.119.0, עם integrity.
+- `sw.js`: ‏`joke-v4`, עם `/auth.js`.
+- `/api/joke` עם טוקן מזויף: ‏401 עם `auth_required`, בלי בדיחה. זה מוכיח ש-getUser מול Supabase האמיתי עובד.
+- `/api/delete-account` בלי טוקן: ‏401. ‏`/api/top`: עובד כמו קודם.
 - `SUPABASE_SECRET_KEY` ו-`OPENAI_API_KEY` מוגדרים רק ב-Production. זו בחירה: העבודה רק בסביבת Production, ולכן הסודות לא נוספים ל-Preview ול-Development.
