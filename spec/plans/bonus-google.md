@@ -106,3 +106,18 @@ commit ו-push ל-main. אין משתנים חדשים ב-Vercel.
 - משם Google שוב: ה"לא אהבתי" שחיכה נשלח לפני טעינת הרשימה.
 - קוד שלא הוחלף (נבדק בטעות, בגלל באג בשרת המדומה): "לא הצליחה", והכתובת נקייה.
 - אין גלילה לצד, ואין אף בקשה ל-`/rest/v1`. בריפו אין Client ID ואין Client Secret.
+
+### שלב א: השלבים הידניים
+- Supabase: ה-Callback URL הועתק (`https://fuseiotgtrlugyiwfsyp.supabase.co/auth/v1/callback`).
+- Google Cloud: פרויקט `joke-in-a-click`. ‏Google Auth Platform: שם "בדיחה בלחיצה", ‏External, מצב Testing, ומשתמש בדיקה אחד. ‏Client מסוג Web application, עם origin של Vercel וה-Callback של Supabase.
+- Supabase: ספק Google דולק, עם ה-Client ID והסוד. הסוד רק שם.
+- נבדק מבחוץ: `/auth/v1/settings` מחזיר `external.google: true`.
+
+### שלב ד: דחיפה
+- נדחף ל-main (`ad35f05`), ונפרס לבד: https://jokewithaclick91126.vercel.app
+
+### נבדק בפרודקשן
+- `sw.js`: ‏`joke-v6`. בדף: הכפתור "המשך עם Google" והקו "או עם מייל וסיסמה". ב-`auth.js`: ‏`signInWithOAuth`.
+- בדף וב-`auth.js` אין `GOCSPX`, אין Client ID, ואין `sb_publishable_` או `sb_secret_`.
+- `/auth/v1/authorize?provider=google` של Supabase: ‏302 ל-`accounts.google.com`, עם ה-Callback הנכון.
+- `/api/feed` ו-`/api/vote` עובדים כמו קודם.
