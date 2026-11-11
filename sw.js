@@ -1,10 +1,11 @@
 // network-first: קודם רשת, ושומרים עותק. אין רשת: מהמטמון.
 // בקשה ל-/api, בקשה שאינה GET, או לכתובת אחרת: לא נוגעים בה.
-const CACHE = 'joke-v3';
+const CACHE = 'joke-v4';
 
 const PRECACHE = [
   '/',
   '/manifest.webmanifest',
+  '/auth.js',
   '/assets/logo.svg',
   '/assets/mascot-idle.svg',
   '/assets/mascot-think.svg',

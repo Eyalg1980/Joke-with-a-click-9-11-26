@@ -12,6 +12,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Playpen+Sans+Hebrew:wght@500&display=swap" rel="stylesheet">
+  <!-- הספרייה של Supabase, רק לכניסה. גרסה קבועה, עם בדיקת שלמות -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js"
+          integrity="sha384-uteMfOloLDGt042uDz+xHGF3ym63/WQ6rFq7murQRG8Ih7QrXGEGNtWd8688sb4O"
+          crossorigin="anonymous" defer></script>
+  <script src="/auth.js" defer></script>
   <style>
     :root {
       --sun: #FFE15A;
@@ -297,6 +302,274 @@
       line-height: 1.4;
     }
 
+    /* שורת "נכתבה עכשיו בשבילך" מתחת לבדיחה */
+    .author {
+      margin: -4px 0 0;
+      align-self: stretch;
+      text-align: right;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink-soft);
+    }
+
+    .author[hidden] { display: none; }
+
+    /* כפתור החשבון: מדבקה לבנה בפינה העליונה בצד שמאל */
+    .topbar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: -10px;
+    }
+
+    .account-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 210px;
+      min-height: 46px;
+      padding: 5px 16px 5px 6px;
+      font: 700 17px var(--ui-font);
+      color: var(--ink);
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      box-shadow: 3px 4px 0 var(--ink);
+      cursor: pointer;
+      transform: rotate(-2deg);
+    }
+
+    .account-btn[data-guest="true"] { padding: 5px 18px; }
+
+    .account-btn:focus-visible {
+      outline: 4px solid var(--blue);
+      outline-offset: 3px;
+    }
+
+    .avatar {
+      flex: none;
+      display: inline-grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      font: 700 16px var(--ui-font);
+      color: #fff;
+      background: #6C4DF6;
+      border: 2.5px solid var(--ink);
+      border-radius: 50%;
+    }
+
+    .avatar[hidden] { display: none; }
+
+    .account-name {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    /* חלונות: עולים מלמטה בטלפון, באמצע במחשב */
+    dialog {
+      width: 100%;
+      max-width: 440px;
+      margin: auto auto 0;
+      padding: 0;
+      color: var(--ink);
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      border-bottom: 0;
+      border-radius: 26px 26px 0 0;
+      box-shadow: 6px 6px 0 var(--ink);
+    }
+
+    dialog::backdrop { background: rgba(43, 30, 74, 0.45); }
+
+    dialog[open] { animation: rise 0.22s ease-out; }
+
+    @keyframes rise { from { translate: 0 40px; opacity: 0; } to { translate: 0 0; opacity: 1; } }
+
+    @media (min-width: 600px) {
+      dialog {
+        margin: auto;
+        border-bottom: 3px solid var(--ink);
+        border-radius: 26px;
+      }
+    }
+
+    .sheet {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 20px 20px 26px;
+    }
+
+    .sheet-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .sheet h2 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .close-btn {
+      width: 40px;
+      height: 40px;
+      font: 700 22px var(--ui-font);
+      color: var(--ink);
+      background: var(--paper);
+      border: 2.5px solid var(--ink);
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .close-btn:focus-visible,
+    .tab:focus-visible,
+    .plain-btn:focus-visible {
+      outline: 4px solid var(--blue);
+      outline-offset: 2px;
+    }
+
+    .tabs {
+      display: flex;
+      padding: 4px;
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      box-shadow: 0 4px 0 var(--ink);
+    }
+
+    .tab {
+      flex: 1;
+      min-height: 44px;
+      font: 700 18px var(--ui-font);
+      color: var(--ink);
+      background: transparent;
+      border: 0;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .tab[aria-selected="true"] {
+      color: #fff;
+      background: var(--ink);
+    }
+
+    .sheet form { gap: 12px; }
+
+    .sheet input { transform: none; font-size: 18px; }
+
+    .field[hidden] { display: none; }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sheet label { font-size: 17px; margin: 0; }
+
+    .sheet-note {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--ink-soft);
+      line-height: 1.4;
+    }
+
+    .sheet-error {
+      margin: 0;
+      padding: 8px 12px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--error);
+      background: var(--error-bg);
+      border-radius: 12px;
+    }
+
+    .sheet-error:empty { display: none; }
+
+    .sheet .btn {
+      min-height: 56px;
+      font-size: 21px;
+      margin: 6px 0 4px;
+      transform: none;
+      box-shadow: 0 6px 0 var(--ink);
+    }
+
+    .sheet .btn:active,
+    .sheet .btn[aria-busy="true"] {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 var(--ink);
+    }
+
+    .plain-btn {
+      width: 100%;
+      min-height: 50px;
+      font: 700 18px var(--ui-font);
+      color: var(--ink);
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      box-shadow: 0 4px 0 var(--ink);
+      cursor: pointer;
+    }
+
+    .plain-btn:disabled,
+    .sheet .btn:disabled { cursor: wait; }
+
+    .danger-link {
+      align-self: center;
+      padding: 6px 10px;
+      font: 600 16px var(--ui-font);
+      color: var(--error);
+      background: none;
+      border: 0;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .me {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .me .avatar { width: 52px; height: 52px; font-size: 24px; border-width: 3px; }
+
+    .me-text { min-width: 0; }
+
+    .me-name {
+      margin: 0;
+      font-size: 21px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .me-email {
+      margin: 2px 0 0;
+      font-size: 15px;
+      color: var(--ink-soft);
+      overflow-wrap: anywhere;
+    }
+
+    .confirm {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 14px;
+      background: var(--error-bg);
+      border: 2.5px dashed var(--error);
+      border-radius: 18px;
+    }
+
+    .confirm[hidden] { display: none; }
+
+    .confirm p { margin: 0; font-weight: 600; line-height: 1.4; }
+
+    .confirm .btn { background: var(--error); margin: 0; }
+
     footer {
       margin-top: auto;
       padding-top: 10px;
@@ -323,6 +596,13 @@
 </head>
 <body>
   <main>
+    <div class="topbar">
+      <button class="account-btn" id="account-btn" type="button" data-guest="true" aria-haspopup="dialog">
+        <span class="avatar" id="account-avatar" aria-hidden="true" hidden></span>
+        <span class="account-name" id="account-name">כניסה</span>
+      </button>
+    </div>
+
     <h1 style="margin:0"><img class="logo" src="assets/logo.svg" width="360" height="190" alt="בדיחה בלחיצה"></h1>
 
     <p class="intro">כותבים נושא, לוחצים, וצוחקים.<br>בלי נושא, מקבלים בדיחה כללית.</p>
@@ -336,6 +616,7 @@
     <section class="bubble" id="bubble" data-state="idle" aria-label="הבדיחה">
       <img class="mascot" id="mascot" src="assets/mascot-idle.svg" width="120" height="112" alt="הכפתור מחייך ומחכה">
       <p class="message" id="message" aria-live="polite">לוחצים על הכפתור, והבדיחה מופיעה כאן</p>
+      <p class="author" id="author" hidden></p>
       <div class="laugh-row" id="laugh-row" hidden>
         <button class="laugh-btn" id="laugh-btn" type="button">צחקתי · 0</button>
         <p class="laugh-error" id="laugh-error" role="status"></p>
@@ -352,6 +633,62 @@
     <footer>מיישם AI ואוטומציה · 53500</footer>
   </main>
 
+  <!-- חלון הכניסה: כניסה והרשמה -->
+  <dialog id="login-dialog" aria-labelledby="login-title">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h2 id="login-title">כניסה</h2>
+        <button class="close-btn" type="button" data-close aria-label="סגירה">×</button>
+      </div>
+      <p class="sheet-note" id="login-note" hidden></p>
+      <div class="tabs" role="tablist" aria-label="כניסה או הרשמה">
+        <button class="tab" id="tab-signin" type="button" role="tab" aria-selected="true" aria-controls="login-form">כניסה</button>
+        <button class="tab" id="tab-signup" type="button" role="tab" aria-selected="false" aria-controls="login-form">הרשמה</button>
+      </div>
+      <form id="login-form" novalidate>
+        <div class="field" id="name-field" hidden>
+          <label for="login-name">איך לקרוא לך?</label>
+          <input id="login-name" type="text" maxlength="30" autocomplete="nickname" placeholder="למשל: נועה">
+        </div>
+        <div class="field">
+          <label for="login-email">מייל</label>
+          <input id="login-email" type="email" dir="ltr" autocomplete="email" inputmode="email" placeholder="name@example.com">
+        </div>
+        <div class="field">
+          <label for="login-password">סיסמה</label>
+          <input id="login-password" type="password" dir="ltr" minlength="6" autocomplete="current-password">
+        </div>
+        <p class="sheet-error" id="login-error" role="alert"></p>
+        <button class="btn" id="login-submit" type="submit">כניסה</button>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- חלון "החשבון שלי" -->
+  <dialog id="account-dialog" aria-labelledby="account-title">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h2 id="account-title">החשבון שלי</h2>
+        <button class="close-btn" type="button" data-close aria-label="סגירה">×</button>
+      </div>
+      <div class="me">
+        <span class="avatar" id="me-avatar" aria-hidden="true"></span>
+        <div class="me-text">
+          <p class="me-name" id="me-name"></p>
+          <p class="me-email" id="me-email" dir="ltr"></p>
+        </div>
+      </div>
+      <p class="sheet-error" id="account-error" role="alert"></p>
+      <button class="plain-btn" id="signout-btn" type="button">התנתקות</button>
+      <button class="danger-link" id="delete-start" type="button">מחיקת החשבון</button>
+      <div class="confirm" id="delete-confirm" hidden>
+        <p>למחוק את החשבון לצמיתות? הבדיחות שלך יישארו, בלי השם.</p>
+        <button class="btn" id="delete-yes" type="button">כן, למחוק</button>
+        <button class="plain-btn" id="delete-no" type="button">ביטול</button>
+      </div>
+    </div>
+  </dialog>
+
   <script>
     const form = document.getElementById('joke-form');
     const input = document.getElementById('topic');
@@ -363,8 +700,30 @@
     const laughBtn = document.getElementById('laugh-btn');
     const laughError = document.getElementById('laugh-error');
     const topList = document.getElementById('top-list');
+    const author = document.getElementById('author');
 
     let currentJokeId = null;
+
+    // כל קריאה ל-/api עוברת כאן. יש טוקן: הוא נשלח בכותרת Authorization.
+    // 401 עם auth_required אחרי שנשלח טוקן: מתנתקים לבד ומבקשים להתחבר שוב.
+    async function api(path, options = {}) {
+      const headers = new Headers(options.headers || {});
+      let sentToken = false;
+      if (window.jokeAuth) {
+        const token = await window.jokeAuth.token();
+        if (token) {
+          headers.set('Authorization', `Bearer ${token}`);
+          sentToken = true;
+        }
+      }
+      const res = await fetch(path, { ...options, headers });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401 && data.code === 'auth_required' && sentToken) {
+        await window.jokeAuth.signOut();
+        openLogin('signin', 'צריך להתחבר שוב.');
+      }
+      return { res, data };
+    }
 
     const STATES = {
       idle:  { img: 'mascot-idle.svg',  alt: 'הכפתור מחייך ומחכה', button: 'תנו לי בדיחה!' },
@@ -401,12 +760,11 @@
       laughBtn.disabled = true;
       laughError.textContent = '';
       try {
-        const res = await fetch('/api/laugh', {
+        const { res, data } = await api('/api/laugh', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id }),
         });
-        const data = await res.json().catch(() => ({}));
         if (id !== currentJokeId) return; // בינתיים הגיעה בדיחה חדשה
         if (res.ok && typeof data.laughs === 'number') {
           laughBtn.dataset.done = 'true';
@@ -432,8 +790,7 @@
 
     async function loadTop() {
       try {
-        const res = await fetch('/api/top');
-        const data = await res.json().catch(() => ({}));
+        const { res, data } = await api('/api/top');
         if (!res.ok || !Array.isArray(data.jokes)) {
           topNote(data.error || 'אי אפשר לטעון את הרשימה כרגע.');
           return;
@@ -466,24 +823,215 @@
 
       const topic = input.value.trim().slice(0, 100);
       showLaugh(null);
+      showAuthor(null);
       setState('think', topic ? `מחפש בדיחה על ${topic}...` : 'מחפש בדיחה...');
 
       try {
-        const res = await fetch('/api/joke', {
+        const { res, data } = await api('/api/joke', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ topic }),
         });
-        const data = await res.json().catch(() => ({}));
         if (res.ok && typeof data.joke === 'string') {
           setState('joke', data.joke);
+          showAuthor(typeof data.author_name === 'string' ? data.author_name : null);
           showLaugh(typeof data.id === 'string' ? data.id : null);
+        } else if (res.status === 401 && data.code === 'auth_required') {
+          setState('error', 'צריך להתחבר שוב. אפשר גם לבקש בדיחה בלי חשבון.');
         } else {
           setState('error', data.error || 'משהו השתבש. נסו שוב.');
         }
       } catch {
         setState('error', 'אין חיבור לשרת כרגע. נסו שוב.');
       }
+    });
+
+    // "נכתבה עכשיו בשבילך, " והשם שחזר מהשרת. אורח: בלי השורה.
+    function showAuthor(name) {
+      author.textContent = name ? `נכתבה עכשיו בשבילך, ${name}` : '';
+      author.hidden = !name;
+    }
+
+    // ===== כניסה =====
+    const accountBtn = document.getElementById('account-btn');
+    const accountAvatar = document.getElementById('account-avatar');
+    const accountName = document.getElementById('account-name');
+
+    const loginDialog = document.getElementById('login-dialog');
+    const loginTitle = document.getElementById('login-title');
+    const loginNote = document.getElementById('login-note');
+    const tabSignin = document.getElementById('tab-signin');
+    const tabSignup = document.getElementById('tab-signup');
+    const loginForm = document.getElementById('login-form');
+    const nameField = document.getElementById('name-field');
+    const loginName = document.getElementById('login-name');
+    const loginEmail = document.getElementById('login-email');
+    const loginPassword = document.getElementById('login-password');
+    const loginError = document.getElementById('login-error');
+    const loginSubmit = document.getElementById('login-submit');
+
+    const accountDialog = document.getElementById('account-dialog');
+    const meAvatar = document.getElementById('me-avatar');
+    const meName = document.getElementById('me-name');
+    const meEmail = document.getElementById('me-email');
+    const accountError = document.getElementById('account-error');
+    const signoutBtn = document.getElementById('signout-btn');
+    const deleteStart = document.getElementById('delete-start');
+    const deleteConfirm = document.getElementById('delete-confirm');
+    const deleteYes = document.getElementById('delete-yes');
+    const deleteNo = document.getElementById('delete-no');
+
+    let loginMode = 'signin';
+
+    function nameOf(session) {
+      const name = session?.user?.user_metadata?.full_name;
+      return typeof name === 'string' && name.trim() ? name.trim() : 'החשבון שלי';
+    }
+
+    function initialOf(name) {
+      return Array.from(name.trim())[0] || '?';
+    }
+
+    function renderAccount(session) {
+      if (session?.user) {
+        const name = nameOf(session);
+        accountBtn.dataset.guest = 'false';
+        accountAvatar.hidden = false;
+        accountAvatar.textContent = initialOf(name);
+        accountName.textContent = name;
+        accountBtn.setAttribute('aria-label', `החשבון שלי: ${name}`);
+        meAvatar.textContent = initialOf(name);
+        meName.textContent = name;
+        meEmail.textContent = session.user.email || '';
+      } else {
+        accountBtn.dataset.guest = 'true';
+        accountAvatar.hidden = true;
+        accountAvatar.textContent = '';
+        accountName.textContent = 'כניסה';
+        accountBtn.removeAttribute('aria-label');
+        if (accountDialog.open) accountDialog.close();
+      }
+    }
+
+    function setLoginMode(mode) {
+      loginMode = mode;
+      const signup = mode === 'signup';
+      tabSignin.setAttribute('aria-selected', String(!signup));
+      tabSignup.setAttribute('aria-selected', String(signup));
+      nameField.hidden = !signup;
+      loginTitle.textContent = signup ? 'הרשמה' : 'כניסה';
+      loginSubmit.textContent = signup ? 'הרשמה' : 'כניסה';
+      loginPassword.autocomplete = signup ? 'new-password' : 'current-password';
+      loginPassword.placeholder = signup ? 'לפחות 6 תווים' : '';
+      loginError.textContent = '';
+    }
+
+    function openLogin(mode = 'signin', note = '') {
+      setLoginMode(mode);
+      loginNote.textContent = note;
+      loginNote.hidden = !note;
+      setBusy(loginSubmit, false);
+      if (!loginDialog.open) loginDialog.showModal();
+      (mode === 'signup' ? loginName : loginEmail).focus();
+      // הספרייה לא נטענה: מנסים שוב, ומודיעים אם עדיין אי אפשר
+      if (window.jokeAuth) {
+        window.jokeAuth.ready().catch((err) => { loginError.textContent = err.message; });
+      } else {
+        loginError.textContent = 'הכניסה לא זמינה כרגע.';
+      }
+    }
+
+    function openAccount() {
+      accountError.textContent = '';
+      deleteConfirm.hidden = true;
+      deleteStart.hidden = false;
+      setBusy(signoutBtn, false);
+      setBusy(deleteYes, false);
+      accountDialog.showModal();
+    }
+
+    function setBusy(btn, busy) {
+      btn.disabled = busy;
+      btn.setAttribute('aria-busy', String(busy));
+    }
+
+    accountBtn.addEventListener('click', () => {
+      const session = window.jokeAuth?.session();
+      if (session?.user) openAccount();
+      else openLogin('signin');
+    });
+
+    tabSignin.addEventListener('click', () => setLoginMode('signin'));
+    tabSignup.addEventListener('click', () => setLoginMode('signup'));
+
+    // Escape סוגר לבד. סוגרים גם בכפתור ×, ובלחיצה מחוץ לחלון.
+    for (const dialog of [loginDialog, accountDialog]) {
+      dialog.addEventListener('click', (event) => {
+        if (event.target === dialog || event.target.closest('[data-close]')) dialog.close();
+      });
+    }
+
+    loginForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (loginSubmit.disabled || !window.jokeAuth) return;
+      loginError.textContent = '';
+      setBusy(loginSubmit, true);
+      const email = loginEmail.value;
+      const password = loginPassword.value;
+      const result = loginMode === 'signup'
+        ? await window.jokeAuth.signUp(loginName.value, email, password)
+        : await window.jokeAuth.signIn(email, password);
+      setBusy(loginSubmit, false);
+      if (result.error) {
+        loginError.textContent = result.error;
+        return;
+      }
+      loginPassword.value = '';
+      loginDialog.close();
+    });
+
+    signoutBtn.addEventListener('click', async () => {
+      setBusy(signoutBtn, true);
+      await window.jokeAuth.signOut();
+      setBusy(signoutBtn, false);
+      accountDialog.close();
+    });
+
+    deleteStart.addEventListener('click', () => {
+      deleteStart.hidden = true;
+      deleteConfirm.hidden = false;
+      deleteNo.focus();
+    });
+
+    deleteNo.addEventListener('click', () => {
+      deleteConfirm.hidden = true;
+      deleteStart.hidden = false;
+      accountError.textContent = '';
+    });
+
+    deleteYes.addEventListener('click', async () => {
+      setBusy(deleteYes, true);
+      accountError.textContent = '';
+      try {
+        const { res, data } = await api('/api/delete-account', { method: 'POST' });
+        if (res.ok && data.deleted) {
+          await window.jokeAuth.signOut();
+          accountDialog.close();
+          showAuthor(null);
+          return;
+        }
+        if (res.status !== 401) accountError.textContent = data.error || 'אי אפשר למחוק את החשבון כרגע.';
+      } catch {
+        accountError.textContent = 'אין חיבור לשרת כרגע. נסו שוב.';
+      }
+      setBusy(deleteYes, false);
+    });
+
+    // auth.js נטען עם defer, אחרי הספרייה של Supabase
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.jokeAuth) return;
+      window.jokeAuth.onChange(renderAccount);
+      window.jokeAuth.ready().catch((err) => console.error('auth', err.message));
     });
 
     loadTop();

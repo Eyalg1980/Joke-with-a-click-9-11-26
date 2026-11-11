@@ -1,18 +1,17 @@
 // "הכי מצחיקות": חמש הבדיחות עם הכי הרבה צחוקים, רק עם צחוק אחד לפחות.
 import { getSupabase } from '../lib/supabase.js';
+import { json, error, methodNotAllowed } from '../lib/http.js';
 
-const ERROR = 'אי אפשר לטעון את הרשימה כרגע.';
+const FAILED = 'אי אפשר לטעון את הרשימה כרגע.';
 
 export default {
   async fetch(request) {
-    if (request.method !== 'GET') {
-      return Response.json({ error: 'אפשר לשלוח רק GET.' }, { status: 405 });
-    }
+    if (request.method !== 'GET') return methodNotAllowed('GET');
 
     const supabase = getSupabase();
-    if (!supabase) return Response.json({ error: ERROR }, { status: 500 });
+    if (!supabase) return error(FAILED, 500);
 
-    const { data, error } = await supabase
+    const { data, error: dbError } = await supabase
       .from('jokes')
       .select('id, text, laughs')
       .gt('laughs', 0)
@@ -20,14 +19,11 @@ export default {
       .order('created_at', { ascending: false })
       .limit(5);
 
-    if (error) {
-      console.error(`top failed: code=${error.code}, message=${error.message}`);
-      return Response.json({ error: ERROR }, { status: 500 });
+    if (dbError) {
+      console.error(`top failed: code=${dbError.code}, message=${dbError.message}`);
+      return error(FAILED, 500);
     }
 
-    return Response.json(
-      { jokes: data ?? [] },
-      { headers: { 'Cache-Control': 'no-store' } },
-    );
+    return json({ jokes: data ?? [] });
   },
 };
