@@ -660,6 +660,50 @@
       background: var(--ink);
     }
 
+    /* בונוס: "המשך עם Google", מעל שתי הלשוניות */
+    .google-btn {
+      width: 100%;
+      min-height: 54px;
+      font: 700 19px var(--ui-font);
+      color: var(--ink);
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      box-shadow: 0 5px 0 var(--ink);
+      cursor: pointer;
+      transition: transform 0.08s, box-shadow 0.08s;
+    }
+
+    .google-btn:active:not(:disabled),
+    .google-btn[aria-busy="true"] {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 var(--ink);
+    }
+
+    .google-btn:disabled { cursor: wait; }
+
+    .google-btn:focus-visible {
+      outline: 4px solid var(--blue);
+      outline-offset: 3px;
+    }
+
+    .or {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 2px 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink-soft);
+    }
+
+    .or::before,
+    .or::after {
+      content: '';
+      flex: 1;
+      border-top: 2.5px dashed var(--ink);
+    }
+
     .sheet form { gap: 12px; }
 
     .sheet input { transform: none; font-size: 18px; }
@@ -892,6 +936,8 @@
         <button class="close-btn" type="button" data-close aria-label="סגירה">×</button>
       </div>
       <p class="sheet-note" id="login-note" hidden></p>
+      <button class="google-btn" id="google-btn" type="button">המשך עם Google</button>
+      <p class="or" aria-hidden="true">או עם מייל וסיסמה</p>
       <div class="tabs" role="tablist" aria-label="כניסה או הרשמה">
         <button class="tab" id="tab-signin" type="button" role="tab" aria-selected="true" aria-controls="login-form">כניסה</button>
         <button class="tab" id="tab-signup" type="button" role="tab" aria-selected="false" aria-controls="login-form">הרשמה</button>
@@ -1119,11 +1165,14 @@
 
     // ===== הלשונית "בדיחה" =====
     // רכיב ההצבעה רק לבדיחה שנשמרה, כלומר שיש לה id
-    function showJokeVote(id) {
+    // הבדיחה שעל המסך, כדי לשחזר אותה אחרי החזרה מ-Google
+    let currentJoke = null;
+
+    function showJokeVote(id, counts = {}) {
       jokeVote.replaceChildren();
       jokeVote.hidden = !id;
       toCommunity.hidden = !id;
-      if (id) jokeVote.append(voteBar({ id, likes: 0, dislikes: 0, my_vote: 0 }));
+      if (id) jokeVote.append(voteBar({ id, likes: counts.likes, dislikes: counts.dislikes, my_vote: counts.my_vote }));
     }
 
     form.addEventListener('submit', async (event) => {
@@ -1131,6 +1180,7 @@
       if (button.disabled) return;
 
       const topic = input.value.trim().slice(0, 100);
+      currentJoke = null;
       showJokeVote(null);
       showAuthor(null);
       setState('think', topic ? `מחפש בדיחה על ${topic}...` : 'מחפש בדיחה...');
@@ -1145,6 +1195,11 @@
           setState('joke', data.joke);
           showAuthor(typeof data.author_name === 'string' ? data.author_name : null);
           showJokeVote(typeof data.id === 'string' ? data.id : null);
+          currentJoke = {
+            text: data.joke,
+            id: typeof data.id === 'string' ? data.id : null,
+            author_name: typeof data.author_name === 'string' ? data.author_name : null,
+          };
         } else if (res.status === 401 && data.code === 'auth_required') {
           setState('error', 'צריך להתחבר שוב. אפשר גם לבקש בדיחה בלי חשבון.');
         } else {
@@ -1473,6 +1528,87 @@
       if (waiting) sendVote(waiting.id, waiting.value);
     });
 
+    // ===== בונוס: כניסה עם Google =====
+    // לפני היציאה ל-Google שומרים את מה שהמשתמש עשה, ובחזרה משחזרים, פעם אחת בלבד.
+    const RETURN_KEY = 'joke-google-return';
+    const googleBtn = document.getElementById('google-btn');
+
+    function saveForReturn() {
+      const saved = { view: currentView, pendingVote };
+      if (currentJoke) {
+        const v = currentJoke.id ? votes.get(currentJoke.id) : null;
+        saved.joke = { ...currentJoke, likes: v?.likes ?? 0, dislikes: v?.dislikes ?? 0 };
+      }
+      try { sessionStorage.setItem(RETURN_KEY, JSON.stringify(saved)); } catch { /* בלי שחזור */ }
+    }
+
+    function takeSaved() {
+      try {
+        const raw = sessionStorage.getItem(RETURN_KEY);
+        sessionStorage.removeItem(RETURN_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch {
+        return null;
+      }
+    }
+
+    // מחזירים את הלשונית, את הבדיחה ואת ההצבעה שחיכתה. לפני route(), כדי שהלשונית הנכונה תיפתח.
+    function restoreSaved(saved) {
+      if (!saved || typeof saved !== 'object') return;
+      if (VIEWS.includes(saved.view)) {
+        history.replaceState(history.state, '', `${location.pathname}${location.search}#${saved.view}`);
+      }
+      const j = saved.joke;
+      if (j && typeof j.text === 'string') {
+        setState('joke', j.text);
+        showAuthor(typeof j.author_name === 'string' ? j.author_name : null);
+        const id = typeof j.id === 'string' ? j.id : null;
+        showJokeVote(id, { likes: j.likes, dislikes: j.dislikes, my_vote: 0 });
+        currentJoke = { text: j.text, id, author_name: j.author_name ?? null };
+      }
+      const pv = saved.pendingVote;
+      if (pv && typeof pv.id === 'string' && (pv.value === 1 || pv.value === -1)) {
+        pendingVote = { id: pv.id, value: pv.value };
+      }
+    }
+
+    // אחרי שהכניסה מוכנה: חזרה עם בעיה פותחת את חלון הכניסה עם ההודעה.
+    // חזרה מחוברת עם הצבעה שחיכתה: שולחים אותה מיד.
+    function afterReturn() {
+      const problem = window.jokeAuth?.returnError();
+      if (problem) {
+        const waiting = pendingVote;
+        openLogin('signin', waiting ? 'כדי לדרג בדיחות צריך חשבון.' : '');
+        pendingVote = waiting;
+        loginError.textContent = problem;
+        return;
+      }
+      if (pendingVote && signedIn()) {
+        const waiting = pendingVote;
+        pendingVote = null;
+        sendVote(waiting.id, waiting.value);
+      }
+    }
+
+    googleBtn.addEventListener('click', async () => {
+      if (googleBtn.disabled || !window.jokeAuth) return;
+      loginError.textContent = '';
+      setBusy(googleBtn, true);
+      saveForReturn();
+      const result = await window.jokeAuth.google();
+      if (result.error) {
+        try { sessionStorage.removeItem(RETURN_KEY); } catch { /* כלום */ }
+        setBusy(googleBtn, false);
+        loginError.textContent = result.error;
+      }
+      // הצלחה: הדף עובר ל-Google, והכפתור נשאר נעול
+    });
+
+    // חזרה לדף מהמטמון של הדפדפן (כפתור חזרה ממסך Google): הכפתור נפתח שוב
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) setBusy(googleBtn, false);
+    });
+
     // החלון נסגר בלי כניסה: ההצבעה שחיכתה נמחקת
     loginDialog.addEventListener('close', () => {
       if (!signedIn()) pendingVote = null;
@@ -1539,12 +1675,17 @@
     }
 
     // auth.js נטען עם defer, אחרי הספרייה של Supabase
+    // החזרה מ-Google נבדקת בתוך authReady, ולכן ההצבעה שחיכתה יוצאת לפני שהרשימה נטענת
     document.addEventListener('DOMContentLoaded', () => {
+      restoreSaved(takeSaved());
       if (window.jokeAuth) {
         window.jokeAuth.onChange(onAuthChange);
         authReady = window.jokeAuth.ready()
           .catch((err) => console.error('auth', err.message))
-          .finally(() => { authSettled = true; });
+          .finally(() => {
+            authSettled = true;
+            afterReturn();
+          });
       }
       route();
     });

@@ -20,10 +20,30 @@
   const UNAVAILABLE = 'הכניסה לא זמינה כרגע.';
   const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+  const GOOGLE_OFF = 'הכניסה עם Google עוד לא מוגדרת.';
+  const GOOGLE_CANCELLED = 'הכניסה עם Google בוטלה.';
+  const GOOGLE_FAILED = 'הכניסה עם Google לא הצליחה. נסו שוב.';
+
   let client = null;
+  let config = null;
   let readyPromise = null;
   let current = null; // ה-session הנוכחי
   const listeners = new Set();
+
+  // חזרה מ-Google: קוראים את הכתובת לפני שהספרייה נוגעת בה,
+  // כי כשההחלפה מצליחה היא מוחקת את code מהכתובת.
+  const landing = (() => {
+    const url = new URL(window.location.href);
+    const hash = new URLSearchParams(url.hash.slice(1));
+    const pick = (k) => url.searchParams.get(k) || hash.get(k);
+    return {
+      code: url.searchParams.has('code'),
+      error: pick('error'),
+      errorDescription: pick('error_description'),
+      errorCode: pick('error_code'),
+    };
+  })();
+  let landingChecked = false;
 
   function message(error) {
     if (!error) return GENERAL;
@@ -46,11 +66,11 @@
       if (!window.supabase || typeof window.supabase.createClient !== 'function') {
         throw new Error(UNAVAILABLE);
       }
-      let config;
       try {
         const res = await fetch('/api/config', { cache: 'no-store' });
-        config = await res.json().catch(() => ({}));
-        if (!res.ok || !config.url || !config.publishableKey) throw new Error('config');
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.url || !data.publishableKey) throw new Error('config');
+        config = data;
       } catch (err) {
         console.error('auth config failed', err?.message);
         throw new Error(UNAVAILABLE);
@@ -143,6 +163,66 @@
     return { ok: true };
   }
 
+  // כניסה עם Google. קודם בודקים ב-/auth/v1/settings (נתיב ציבורי) ש-Google דולק.
+  // כבוי: הודעה בעברית, בלי לצאת מהדף. דולק: הספרייה מעבירה את הדף ל-Google.
+  function google() {
+    return withClient(async (c) => {
+      let enabled = false;
+      try {
+        const res = await fetch(`${config.url}/auth/v1/settings`, {
+          headers: { apikey: config.publishableKey },
+          cache: 'no-store',
+        });
+        const settings = await res.json().catch(() => ({}));
+        enabled = res.ok && settings?.external?.google === true;
+      } catch (err) {
+        console.error('auth settings failed', err?.message);
+        return { error: OFFLINE };
+      }
+      if (!enabled) return { error: GOOGLE_OFF };
+
+      const { error } = await c.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/` },
+      });
+      if (error) {
+        console.error('google sign-in failed', error.name, error.message);
+        return { error: GOOGLE_FAILED };
+      }
+      return { ok: true, leaving: true };
+    });
+  }
+
+  // אחרי ready(): האם חזרנו מ-Google עם בעיה? מחזירה הודעה בעברית או null, פעם אחת בלבד.
+  // ביטול או שגיאה (?error=), או קוד שלא הוחלף בטוקן: הודעה, והכתובת מתנקה.
+  function returnError() {
+    if (landingChecked) return null;
+    landingChecked = true;
+
+    let msg = null;
+    if (landing.error || landing.errorDescription || landing.errorCode) {
+      console.error('google returned error', landing.error, landing.errorCode);
+      msg = landing.error === 'access_denied' ? GOOGLE_CANCELLED : GOOGLE_FAILED;
+    } else if (landing.code && !current) {
+      msg = GOOGLE_FAILED;
+    }
+
+    // מנקים את הכתובת: בלי code, ‏error ושאר הפרמטרים של החזרה, ובלי # של שגיאה
+    const url = new URL(window.location.href);
+    const keys = ['code', 'error', 'error_description', 'error_code', 'sb_flow_id'];
+    let dirty = false;
+    for (const k of keys) {
+      if (url.searchParams.has(k)) { url.searchParams.delete(k); dirty = true; }
+    }
+    const hash = new URLSearchParams(url.hash.slice(1));
+    if (hash.has('error') || hash.has('error_description') || hash.has('access_token')) {
+      url.hash = '';
+      dirty = true;
+    }
+    if (dirty) window.history.replaceState(window.history.state, '', url.toString());
+    return msg;
+  }
+
   function session() {
     return current;
   }
@@ -166,5 +246,5 @@
     return () => listeners.delete(cb);
   }
 
-  window.jokeAuth = { ready, signUp, signIn, signOut, session, token, onChange };
+  window.jokeAuth = { ready, signUp, signIn, google, returnError, signOut, session, token, onChange };
 })();

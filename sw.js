@@ -1,6 +1,6 @@
 // network-first: קודם רשת, ושומרים עותק. אין רשת: מהמטמון.
 // בקשה ל-/api, בקשה שאינה GET, או לכתובת אחרת: לא נוגעים בה.
-const CACHE = 'joke-v5';
+const CACHE = 'joke-v6';
 
 const PRECACHE = [
   '/',
