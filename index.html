@@ -28,6 +28,8 @@
       --error: #C0261B;
       --error-bg: #FFE8EC;
       --hint: #756B92;
+      --mint: #1FCB8C;
+      --pink: #FF5FA8;
       --ui-font: 'Fredoka', system-ui, sans-serif;
       --joke-font: 'Playpen Sans Hebrew', system-ui, sans-serif;
     }
@@ -195,111 +197,313 @@
       font-weight: 600;
     }
 
-    /* "צחקתי": גלולה קטנה בתוך הבועה, מתחת לבדיחה */
-    .laugh-row {
+    /* ===== רכיב ההצבעה: "אהבתי" ו"לא אהבתי" ===== */
+    .vote {
       align-self: stretch;
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 10px;
-      flex-wrap: wrap;
     }
 
-    .laugh-row[hidden] { display: none; }
-
-    .laugh-btn {
+    .vote-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
       min-height: 44px;
-      padding: 6px 18px;
-      font: 700 18px var(--ui-font);
+      padding: 5px 16px;
+      font: 700 17px var(--ui-font);
       color: var(--ink);
       background: var(--paper);
-      border: 3px solid var(--ink);
+      border: 2.5px solid var(--ink);
       border-radius: 999px;
       box-shadow: 0 4px 0 var(--ink);
       cursor: pointer;
-      transform: rotate(1.5deg);
       transition: transform 0.08s, box-shadow 0.08s;
     }
 
-    .laugh-btn:active:not(:disabled) {
-      transform: translateY(3px) rotate(1.5deg);
+    .vote-btn svg { width: 20px; height: 20px; flex: none; }
+
+    .vote-btn .count { font-variant-numeric: tabular-nums; }
+
+    .vote-btn:active:not(:disabled) {
+      transform: translateY(3px);
       box-shadow: 0 1px 0 var(--ink);
     }
 
-    .laugh-btn:disabled { cursor: default; }
+    .vote-btn[data-kind="like"][aria-pressed="true"] { background: var(--mint); }
+    .vote-btn[data-kind="dislike"][aria-pressed="true"] { background: var(--pink); }
 
-    .laugh-btn[data-done="true"] {
-      background: var(--sun);
-      transform: translateY(3px) rotate(1.5deg);
-      box-shadow: 0 1px 0 var(--ink);
-    }
+    .vote-btn:disabled { cursor: wait; opacity: 0.75; }
 
-    .laugh-btn:focus-visible {
+    .vote-btn:focus-visible {
       outline: 4px solid var(--blue);
       outline-offset: 3px;
     }
 
-    .laugh-error {
+    .vote-error {
+      flex-basis: 100%;
       margin: 0;
       font-size: 15px;
       font-weight: 600;
       color: var(--error);
     }
 
-    /* "הכי מצחיקות" */
-    .top {
-      margin-top: 10px;
-      padding: 18px 20px 20px;
+    .vote-error:empty { display: none; }
+
+    /* קישור לקהילה מתחת לבדיחה */
+    .to-community {
+      align-self: stretch;
+      text-align: right;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .to-community:focus-visible {
+      outline: 4px solid var(--blue);
+      outline-offset: 2px;
+      border-radius: 6px;
+    }
+
+    /* ===== הלשוניות: קהילה ואהבתי ===== */
+    .view[hidden] { display: none; }
+
+    .view {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .view-head h2 {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 6px 0 4px;
+      font-size: 34px;
+      font-weight: 700;
+    }
+
+    .sticker {
+      flex: none;
+      display: inline-grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      border-radius: 14px;
+      box-shadow: 3px 3px 0 var(--ink);
+      transform: rotate(-6deg);
+    }
+
+    .sticker svg { width: 24px; height: 24px; }
+
+    .view-head p {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--ink-soft);
+      line-height: 1.4;
+    }
+
+    .sort {
+      align-self: flex-start;
+      display: flex;
+      padding: 4px;
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      box-shadow: 0 4px 0 var(--ink);
+    }
+
+    .sort button {
+      min-height: 42px;
+      padding: 0 18px;
+      font: 700 17px var(--ui-font);
+      color: var(--ink);
+      background: transparent;
+      border: 0;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .sort button[aria-pressed="true"] {
+      color: #fff;
+      background: var(--ink);
+    }
+
+    .sort button:focus-visible {
+      outline: 4px solid var(--blue);
+      outline-offset: 2px;
+    }
+
+    .cards {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 18px 18px 20px;
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      border-radius: 24px;
+      box-shadow: 6px 6px 0 var(--ink);
+      transform: rotate(0.7deg);
+    }
+
+    .card:nth-child(even) { transform: rotate(-0.7deg); }
+
+    .card-text {
+      margin: 0;
+      font-family: var(--joke-font);
+      font-size: 19px;
+      line-height: 1.5;
+      white-space: pre-line;
+      overflow-wrap: anywhere;
+    }
+
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink-soft);
+    }
+
+    .topic-tag {
+      padding: 1px 10px;
+      color: var(--ink);
+      border: 2px dashed var(--ink);
+      border-radius: 999px;
+      overflow-wrap: anywhere;
+    }
+
+    .rank {
+      position: absolute;
+      top: -16px;
+      right: -12px;
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      font: 700 18px var(--ui-font);
+      color: #fff;
+      background: var(--red);
+      border: 3px solid var(--ink);
+      border-radius: 50%;
+      box-shadow: 2px 2px 0 var(--ink);
+    }
+
+    .card:nth-child(3n+2) .rank { background: var(--blue); }
+    .card:nth-child(3n) .rank { background: var(--mint); color: var(--ink); }
+
+    .card.ranked { margin-top: 6px; }
+
+    .list-note {
+      margin: 0;
+      padding: 16px 18px;
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--ink-soft);
+      line-height: 1.4;
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      border-radius: 22px;
+      box-shadow: 4px 4px 0 var(--ink);
+    }
+
+    .locked {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 22px 20px 24px;
+      text-align: center;
       background: var(--paper);
       border: 3px solid var(--ink);
       border-radius: 28px;
       box-shadow: 6px 6px 0 var(--ink);
-      transform: rotate(0.8deg);
+      transform: rotate(-1deg);
     }
 
-    .top h2 {
-      margin: 0 0 10px;
-      font-size: 22px;
-      font-weight: 700;
-    }
+    .locked[hidden] { display: none; }
 
-    .top ol {
+    .locked img { width: 110px; height: auto; }
+
+    .locked p {
       margin: 0;
-      padding: 0 22px 0 0;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    .locked .btn { margin: 4px 0 6px; transform: none; min-height: 56px; font-size: 21px; }
+
+    /* ===== הלשוניות בתחתית: כרטיס לבן אחד, צף ===== */
+    .tabbar {
+      position: fixed;
+      z-index: 5;
+      left: 50%;
+      bottom: max(12px, env(safe-area-inset-bottom));
+      translate: -50% 0;
+      width: calc(100% - 28px);
+      max-width: 420px;
+      display: flex;
+      gap: 6px;
+      padding: 6px;
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      border-radius: 24px;
+      box-shadow: 0 5px 0 var(--ink);
+    }
+
+    .tabbar a {
+      flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-    }
-
-    .top li {
+      align-items: center;
+      gap: 2px;
+      padding: 7px 4px 6px;
+      font-size: 15px;
       font-weight: 700;
-      font-size: 18px;
+      color: var(--ink);
+      text-decoration: none;
+      border-radius: 18px;
     }
 
-    .top .top-text {
-      display: block;
-      font-family: var(--joke-font);
-      font-weight: 500;
-      font-size: 19px;
-      line-height: 1.5;
+    .tabbar svg { width: 26px; height: 26px; }
+
+    .tabbar a[aria-current="page"] {
+      color: #fff;
+      background: var(--ink);
     }
 
-    .top .top-count {
-      display: inline-block;
-      margin-top: 4px;
-      padding: 1px 10px;
-      font-size: 14px;
-      font-weight: 600;
-      background: var(--sun);
-      border: 2px solid var(--ink);
-      border-radius: 999px;
+    .tabbar a:focus-visible {
+      outline: 4px solid var(--blue);
+      outline-offset: 2px;
     }
 
-    .top .top-note {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 500;
-      color: var(--ink-soft);
-      line-height: 1.4;
+    /* מקום לסרגל הלשוניות, כדי שלא יכסה את התוכן */
+    main { padding-bottom: 116px; }
+
+    .icon {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     /* שורת "נכתבה עכשיו בשבילך" מתחת לבדיחה */
@@ -603,35 +807,82 @@
       </button>
     </div>
 
-    <h1 style="margin:0"><img class="logo" src="assets/logo.svg" width="360" height="190" alt="בדיחה בלחיצה"></h1>
+    <!-- הלשונית "בדיחה" -->
+    <section class="view" id="view-joke" aria-label="בדיחה">
+      <h1 style="margin:0"><img class="logo" src="assets/logo.svg" width="360" height="190" alt="בדיחה בלחיצה"></h1>
 
-    <p class="intro">כותבים נושא, לוחצים, וצוחקים.<br>בלי נושא, מקבלים בדיחה כללית.</p>
+      <p class="intro">כותבים נושא, לוחצים, וצוחקים.<br>בלי נושא, מקבלים בדיחה כללית.</p>
 
-    <form id="joke-form" novalidate>
-      <label for="topic">על מה הבדיחה?</label>
-      <input id="topic" name="topic" type="text" maxlength="100" placeholder="למשל: חתולים" autocomplete="off">
-      <button id="joke-btn" class="btn" type="submit">תנו לי בדיחה!</button>
-    </form>
+      <form id="joke-form" novalidate>
+        <label for="topic">על מה הבדיחה?</label>
+        <input id="topic" name="topic" type="text" maxlength="100" placeholder="למשל: חתולים" autocomplete="off">
+        <button id="joke-btn" class="btn" type="submit">תנו לי בדיחה!</button>
+      </form>
 
-    <section class="bubble" id="bubble" data-state="idle" aria-label="הבדיחה">
-      <img class="mascot" id="mascot" src="assets/mascot-idle.svg" width="120" height="112" alt="הכפתור מחייך ומחכה">
-      <p class="message" id="message" aria-live="polite">לוחצים על הכפתור, והבדיחה מופיעה כאן</p>
-      <p class="author" id="author" hidden></p>
-      <div class="laugh-row" id="laugh-row" hidden>
-        <button class="laugh-btn" id="laugh-btn" type="button">צחקתי · 0</button>
-        <p class="laugh-error" id="laugh-error" role="status"></p>
-      </div>
+      <section class="bubble" id="bubble" data-state="idle" aria-label="הבדיחה">
+        <img class="mascot" id="mascot" src="assets/mascot-idle.svg" width="120" height="112" alt="הכפתור מחייך ומחכה">
+        <p class="message" id="message" aria-live="polite">לוחצים על הכפתור, והבדיחה מופיעה כאן</p>
+        <p class="author" id="author" hidden></p>
+        <div id="joke-vote" hidden></div>
+        <a class="to-community" id="to-community" href="#community" hidden>לבדיחות של הקהילה ←</a>
+      </section>
     </section>
 
-    <section class="top" aria-labelledby="top-title">
-      <h2 id="top-title">הכי מצחיקות</h2>
-      <div id="top-list" aria-live="polite">
-        <p class="top-note">טוען...</p>
+    <!-- הלשונית "קהילה" -->
+    <section class="view" id="view-community" aria-labelledby="community-title" hidden>
+      <div class="view-head">
+        <h2 id="community-title">
+          <span class="sticker" aria-hidden="true">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>
+          הקהילה
+        </h2>
+        <p>בדיחות שכולם ביקשו. מדרגים, והטובות עולות למעלה.</p>
       </div>
+      <div class="sort" role="group" aria-label="מיון">
+        <button type="button" id="sort-new" aria-pressed="true">חדשות</button>
+        <button type="button" id="sort-top" aria-pressed="false">הכי מצחיקות</button>
+      </div>
+      <div id="community-list" aria-live="polite"></div>
+    </section>
+
+    <!-- הלשונית "אהבתי" -->
+    <section class="view" id="view-liked" aria-labelledby="liked-title" hidden>
+      <div class="view-head">
+        <h2 id="liked-title">
+          <span class="sticker" aria-hidden="true">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </span>
+          אהבתי
+        </h2>
+        <p>כל הבדיחות שאהבתם, במקום אחד.</p>
+      </div>
+      <div class="locked" id="liked-locked" hidden>
+        <img src="assets/mascot-idle.svg" width="120" height="112" alt="">
+        <p>כדי לשמור בדיחות שאהבתם צריך חשבון. זה לוקח חצי דקה.</p>
+        <button class="btn" id="liked-login" type="button">כניסה</button>
+      </div>
+      <div id="liked-list" aria-live="polite"></div>
     </section>
 
     <footer>מיישם AI ואוטומציה · 53500</footer>
   </main>
+
+  <!-- הלשוניות בתחתית. כל לשונית היא כתובת עם #, כדי שכפתור החזרה יעבוד -->
+  <nav class="tabbar" aria-label="לשוניות">
+    <a href="#joke" data-view="joke">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+      בדיחה
+    </a>
+    <a href="#community" data-view="community">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      קהילה
+    </a>
+    <a href="#liked" data-view="liked">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      אהבתי
+    </a>
+  </nav>
 
   <!-- חלון הכניסה: כניסה והרשמה -->
   <dialog id="login-dialog" aria-labelledby="login-title">
@@ -696,13 +947,9 @@
     const bubble = document.getElementById('bubble');
     const mascot = document.getElementById('mascot');
     const message = document.getElementById('message');
-    const laughRow = document.getElementById('laugh-row');
-    const laughBtn = document.getElementById('laugh-btn');
-    const laughError = document.getElementById('laugh-error');
-    const topList = document.getElementById('top-list');
     const author = document.getElementById('author');
-
-    let currentJokeId = null;
+    const jokeVote = document.getElementById('joke-vote');
+    const toCommunity = document.getElementById('to-community');
 
     // כל קריאה ל-/api עוברת כאן. יש טוקן: הוא נשלח בכותרת Authorization.
     // 401 עם auth_required אחרי שנשלח טוקן: מתנתקים לבד ומבקשים להתחבר שוב.
@@ -725,6 +972,10 @@
       return { res, data };
     }
 
+    function signedIn() {
+      return Boolean(window.jokeAuth?.session()?.user);
+    }
+
     const STATES = {
       idle:  { img: 'mascot-idle.svg',  alt: 'הכפתור מחייך ומחכה', button: 'תנו לי בדיחה!' },
       think: { img: 'mascot-think.svg', alt: 'הכפתור חושב',        button: 'חושב...' },
@@ -744,77 +995,135 @@
       button.setAttribute('aria-busy', String(busy));
     }
 
-    // כפתור "צחקתי" רק לבדיחה שנשמרה, כלומר שיש לה id
-    function showLaugh(id) {
-      currentJokeId = id || null;
-      laughError.textContent = '';
-      laughBtn.disabled = false;
-      laughBtn.dataset.done = 'false';
-      laughBtn.textContent = 'צחקתי · 0';
-      laughRow.hidden = !currentJokeId;
+    // ===== רכיב ההצבעה: אחד לכל המקומות =====
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const THUMB = {
+      like: 'M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3z',
+      dislike: 'M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zM17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17z',
+    };
+    const LABEL = { like: 'אהבתי', dislike: 'לא אהבתי' };
+
+    // המצב של כל בדיחה שעל המסך: id -> { likes, dislikes, my_vote }
+    const votes = new Map();
+    let pendingVote = null;      // הצבעה של אורח, שמחכה לכניסה
+    let voteChain = Promise.resolve(); // רשימה נטענת רק אחרי שההצבעות שבדרך הסתיימו
+
+    function thumb(kind) {
+      const svg = document.createElementNS(SVG_NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      svg.setAttribute('aria-hidden', 'true');
+      svg.classList.add('icon');
+      const path = document.createElementNS(SVG_NS, 'path');
+      path.setAttribute('d', THUMB[kind]);
+      svg.append(path);
+      return svg;
     }
 
-    laughBtn.addEventListener('click', async () => {
-      if (!currentJokeId || laughBtn.disabled) return;
-      const id = currentJokeId;
-      laughBtn.disabled = true;
-      laughError.textContent = '';
-      try {
-        const { res, data } = await api('/api/laugh', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id }),
-        });
-        if (id !== currentJokeId) return; // בינתיים הגיעה בדיחה חדשה
-        if (res.ok && typeof data.laughs === 'number') {
-          laughBtn.dataset.done = 'true';
-          laughBtn.textContent = `צחקת! · ${data.laughs}`;
-          loadTop();
-        } else {
-          laughError.textContent = data.error || 'הצחוק לא נשמר. נסו שוב.';
-          laughBtn.disabled = false;
-        }
-      } catch {
-        if (id !== currentJokeId) return;
-        laughError.textContent = 'אין חיבור לשרת כרגע. נסו שוב.';
-        laughBtn.disabled = false;
+    function voteBar(joke) {
+      votes.set(joke.id, {
+        likes: Number(joke.likes) || 0,
+        dislikes: Number(joke.dislikes) || 0,
+        my_vote: joke.my_vote === 1 || joke.my_vote === -1 ? joke.my_vote : 0,
+      });
+      const bar = document.createElement('div');
+      bar.className = 'vote';
+      bar.dataset.id = joke.id;
+      for (const kind of ['like', 'dislike']) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'vote-btn';
+        btn.dataset.kind = kind;
+        const label = document.createElement('span');
+        label.textContent = LABEL[kind];
+        const count = document.createElement('span');
+        count.className = 'count';
+        btn.append(thumb(kind), label, count);
+        btn.addEventListener('click', () => onVoteClick(joke.id, kind));
+        bar.append(btn);
       }
-    });
-
-    function topNote(text) {
-      const p = document.createElement('p');
-      p.className = 'top-note';
-      p.textContent = text;
-      topList.replaceChildren(p);
+      const err = document.createElement('p');
+      err.className = 'vote-error';
+      err.setAttribute('role', 'status');
+      bar.append(err);
+      renderBar(bar);
+      return bar;
     }
 
-    async function loadTop() {
-      try {
-        const { res, data } = await api('/api/top');
-        if (!res.ok || !Array.isArray(data.jokes)) {
-          topNote(data.error || 'אי אפשר לטעון את הרשימה כרגע.');
-          return;
-        }
-        if (data.jokes.length === 0) {
-          topNote('עוד אין כאן בדיחות. צחקו על אחת, והיא תופיע כאן.');
-          return;
-        }
-        const ol = document.createElement('ol');
-        for (const j of data.jokes) {
-          const li = document.createElement('li');
-          const text = document.createElement('span');
-          text.className = 'top-text';
-          text.textContent = j.text;
-          const count = document.createElement('span');
-          count.className = 'top-count';
-          count.textContent = j.laughs === 1 ? 'צחוק אחד' : `${j.laughs} צחוקים`;
-          li.append(text, count);
-          ol.append(li);
-        }
-        topList.replaceChildren(ol);
-      } catch {
-        topNote('אין חיבור לשרת כרגע.');
+    function barsFor(id) {
+      return document.querySelectorAll(`.vote[data-id="${CSS.escape(id)}"]`);
+    }
+
+    function renderBar(bar) {
+      const v = votes.get(bar.dataset.id);
+      if (!v) return;
+      for (const btn of bar.querySelectorAll('.vote-btn')) {
+        const like = btn.dataset.kind === 'like';
+        const n = like ? v.likes : v.dislikes;
+        const pressed = v.my_vote === (like ? 1 : -1);
+        btn.setAttribute('aria-pressed', String(pressed));
+        btn.querySelector('.count').textContent = String(n);
+        btn.querySelector('.icon').style.fill = pressed ? 'currentColor' : 'none';
+        btn.setAttribute('aria-label', `${LABEL[btn.dataset.kind]}, ${n}`);
       }
+    }
+
+    function lockBars(id, locked) {
+      for (const bar of barsFor(id)) {
+        for (const btn of bar.querySelectorAll('.vote-btn')) {
+          btn.disabled = locked;
+          btn.setAttribute('aria-busy', String(locked));
+        }
+      }
+    }
+
+    function onVoteClick(id, kind) {
+      const wanted = kind === 'like' ? 1 : -1;
+      if (!signedIn()) {
+        pendingVote = { id, value: wanted };
+        openLogin('signin', 'כדי לדרג בדיחות צריך חשבון.');
+        return;
+      }
+      const current = votes.get(id)?.my_vote ?? 0;
+      sendVote(id, current === wanted ? 0 : wanted);
+    }
+
+    // שולח הצבעה, ומעדכן את כל העותקים של הבדיחה על המסך רק מהתשובה של השרת
+    function sendVote(id, value) {
+      const run = (async () => {
+        lockBars(id, true);
+        for (const bar of barsFor(id)) bar.querySelector('.vote-error').textContent = '';
+        let problem = '';
+        try {
+          const { res, data } = await api('/api/vote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, value }),
+          });
+          if (res.ok && typeof data.likes === 'number') {
+            votes.set(id, { likes: data.likes, dislikes: data.dislikes, my_vote: data.my_vote || 0 });
+            for (const bar of barsFor(id)) renderBar(bar);
+            // באהבתי: בדיחה שכבר לא "אהבתי" יוצאת מהרשימה
+            if (data.my_vote !== 1) dropFromLiked(id);
+          } else if (res.status !== 401) {
+            problem = data.error || 'ההצבעה לא נשמרה. נסו שוב.';
+          }
+        } catch {
+          problem = 'אין חיבור לשרת כרגע. נסו שוב.';
+        }
+        lockBars(id, false);
+        for (const bar of barsFor(id)) bar.querySelector('.vote-error').textContent = problem;
+      })();
+      voteChain = voteChain.then(() => run);
+      return run;
+    }
+
+    // ===== הלשונית "בדיחה" =====
+    // רכיב ההצבעה רק לבדיחה שנשמרה, כלומר שיש לה id
+    function showJokeVote(id) {
+      jokeVote.replaceChildren();
+      jokeVote.hidden = !id;
+      toCommunity.hidden = !id;
+      if (id) jokeVote.append(voteBar({ id, likes: 0, dislikes: 0, my_vote: 0 }));
     }
 
     form.addEventListener('submit', async (event) => {
@@ -822,7 +1131,7 @@
       if (button.disabled) return;
 
       const topic = input.value.trim().slice(0, 100);
-      showLaugh(null);
+      showJokeVote(null);
       showAuthor(null);
       setState('think', topic ? `מחפש בדיחה על ${topic}...` : 'מחפש בדיחה...');
 
@@ -835,7 +1144,7 @@
         if (res.ok && typeof data.joke === 'string') {
           setState('joke', data.joke);
           showAuthor(typeof data.author_name === 'string' ? data.author_name : null);
-          showLaugh(typeof data.id === 'string' ? data.id : null);
+          showJokeVote(typeof data.id === 'string' ? data.id : null);
         } else if (res.status === 401 && data.code === 'auth_required') {
           setState('error', 'צריך להתחבר שוב. אפשר גם לבקש בדיחה בלי חשבון.');
         } else {
@@ -851,6 +1160,176 @@
       author.textContent = name ? `נכתבה עכשיו בשבילך, ${name}` : '';
       author.hidden = !name;
     }
+
+    // ===== כרטיסים: קהילה ואהבתי =====
+    function note(text) {
+      const p = document.createElement('p');
+      p.className = 'list-note';
+      p.textContent = text;
+      return p;
+    }
+
+    function card(joke, rank) {
+      const li = document.createElement('li');
+      li.className = 'card';
+      li.dataset.id = joke.id;
+      if (rank) {
+        li.classList.add('ranked');
+        const badge = document.createElement('span');
+        badge.className = 'rank';
+        badge.textContent = String(rank);
+        badge.setAttribute('aria-label', `מקום ${rank}`);
+        li.append(badge);
+      }
+      const text = document.createElement('p');
+      text.className = 'card-text';
+      text.textContent = joke.text;
+      const meta = document.createElement('p');
+      meta.className = 'card-meta';
+      if (joke.topic) {
+        const tag = document.createElement('span');
+        tag.className = 'topic-tag';
+        tag.textContent = joke.topic;
+        meta.append(tag);
+      }
+      const by = document.createElement('span');
+      by.textContent = joke.author_name ? `של ${joke.author_name}` : 'בדיחה אנונימית';
+      meta.append(by);
+      li.append(text, meta, voteBar(joke));
+      return li;
+    }
+
+    function cardList(jokes, ranked) {
+      const ol = document.createElement(ranked ? 'ol' : 'ul');
+      ol.className = 'cards';
+      jokes.forEach((j, i) => ol.append(card(j, ranked ? i + 1 : 0)));
+      return ol;
+    }
+
+    // לכל רשימה מונה בקשות: תשובה ישנה שמגיעה מאוחר לא דורסת חדשה
+    const seq = { community: 0, liked: 0 };
+
+    // ===== הלשונית "קהילה" =====
+    const communityList = document.getElementById('community-list');
+    const sortNew = document.getElementById('sort-new');
+    const sortTop = document.getElementById('sort-top');
+    let communityMode = 'new';
+
+    function setSort(mode) {
+      communityMode = mode;
+      sortNew.setAttribute('aria-pressed', String(mode === 'new'));
+      sortTop.setAttribute('aria-pressed', String(mode === 'top'));
+      loadCommunity();
+    }
+
+    sortNew.addEventListener('click', () => setSort('new'));
+    sortTop.addEventListener('click', () => setSort('top'));
+
+    async function loadCommunity() {
+      const mine = ++seq.community;
+      const mode = communityMode;
+      if (!communityList.firstChild) communityList.replaceChildren(note('טוען...'));
+      await authReady;
+      await voteChain;
+      try {
+        const { res, data } = await api(`/api/feed?mode=${mode}`);
+        if (mine !== seq.community) return;
+        if (!res.ok || !Array.isArray(data.jokes)) {
+          communityList.replaceChildren(note(data.error || 'אי אפשר לטעון את הרשימה כרגע.'));
+          return;
+        }
+        if (data.jokes.length === 0) {
+          communityList.replaceChildren(note(mode === 'top'
+            ? 'עוד אף אחד לא אהב בדיחה. אולי אתם הראשונים?'
+            : 'עוד אין כאן בדיחות. בקשו אחת בלשונית "בדיחה".'));
+          return;
+        }
+        communityList.replaceChildren(cardList(data.jokes, mode === 'top'));
+      } catch {
+        if (mine === seq.community) communityList.replaceChildren(note('אין חיבור לשרת כרגע.'));
+      }
+    }
+
+    // ===== הלשונית "אהבתי" =====
+    const likedList = document.getElementById('liked-list');
+    const likedLocked = document.getElementById('liked-locked');
+    document.getElementById('liked-login').addEventListener('click', () => openLogin('signin'));
+
+    async function loadLiked() {
+      const mine = ++seq.liked;
+      await authReady;
+      if (mine !== seq.liked) return;
+      if (!signedIn()) {
+        likedList.replaceChildren();
+        likedLocked.hidden = false;
+        return;
+      }
+      likedLocked.hidden = true;
+      if (!likedList.firstChild) likedList.replaceChildren(note('טוען...'));
+      await voteChain;
+      try {
+        const { res, data } = await api('/api/feed?mode=liked');
+        if (mine !== seq.liked) return;
+        if (res.status === 401) {
+          likedList.replaceChildren();
+          likedLocked.hidden = false;
+          return;
+        }
+        if (!res.ok || !Array.isArray(data.jokes)) {
+          likedList.replaceChildren(note(data.error || 'אי אפשר לטעון את הרשימה כרגע.'));
+          return;
+        }
+        likedList.replaceChildren(data.jokes.length
+          ? cardList(data.jokes, false)
+          : note('עוד לא אהבתם אף בדיחה. לחצו "אהבתי" על בדיחה, והיא תחכה לכם כאן.'));
+      } catch {
+        if (mine === seq.liked) likedList.replaceChildren(note('אין חיבור לשרת כרגע.'));
+      }
+    }
+
+    function dropFromLiked(id) {
+      const item = likedList.querySelector(`.card[data-id="${CSS.escape(id)}"]`);
+      if (!item) return;
+      const list = item.parentElement;
+      item.remove();
+      if (!list.children.length) {
+        likedList.replaceChildren(note('עוד לא אהבתם אף בדיחה. לחצו "אהבתי" על בדיחה, והיא תחכה לכם כאן.'));
+      }
+    }
+
+    // ===== הלשוניות: #joke, #community, #liked =====
+    const VIEWS = ['joke', 'community', 'liked'];
+    let currentView = null;
+
+    function viewFromHash() {
+      const name = location.hash.slice(1);
+      return VIEWS.includes(name) ? name : 'joke';
+    }
+
+    function refreshView() {
+      if (currentView === 'community') loadCommunity();
+      if (currentView === 'liked') loadLiked();
+    }
+
+    function route() {
+      const view = viewFromHash();
+      const changed = view !== currentView;
+      currentView = view;
+      for (const name of VIEWS) {
+        document.getElementById(`view-${name}`).hidden = name !== view;
+      }
+      for (const link of document.querySelectorAll('.tabbar a')) {
+        if (link.dataset.view === view) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+      }
+      if (changed) window.scrollTo(0, 0);
+      refreshView();
+    }
+
+    window.addEventListener('hashchange', route);
+
+    // הכניסה מוכנה (או נכשלה). עד אז לא יודעים אם המשתמש מחובר.
+    let authReady = Promise.resolve();
 
     // ===== כניסה =====
     const accountBtn = document.getElementById('account-btn');
@@ -987,7 +1466,16 @@
         return;
       }
       loginPassword.value = '';
+      // הצבעה שחיכתה לכניסה נשלחת לבד
+      const waiting = pendingVote;
+      pendingVote = null;
       loginDialog.close();
+      if (waiting) sendVote(waiting.id, waiting.value);
+    });
+
+    // החלון נסגר בלי כניסה: ההצבעה שחיכתה נמחקת
+    loginDialog.addEventListener('close', () => {
+      if (!signedIn()) pendingVote = null;
     });
 
     signoutBtn.addEventListener('click', async () => {
@@ -1027,14 +1515,39 @@
       setBusy(deleteYes, false);
     });
 
+    // כניסה או יציאה: הרשימה הפתוחה נטענת מחדש, כדי שההצבעות שלי יופיעו או ייעלמו
+    let authSettled = false;
+    let lastUserId = null;
+
+    function onAuthChange(session) {
+      renderAccount(session);
+      const userId = session?.user?.id ?? null;
+      if (!authSettled) {
+        lastUserId = userId;
+        return;
+      }
+      if (userId === lastUserId) return; // למשל רענון של הטוקן
+      lastUserId = userId;
+      if (!userId) {
+        // יציאה: הסימון שלי נעלם מכל מה שעל המסך, המספרים נשארים
+        for (const [id, v] of votes) {
+          v.my_vote = 0;
+          for (const bar of barsFor(id)) renderBar(bar);
+        }
+      }
+      refreshView();
+    }
+
     // auth.js נטען עם defer, אחרי הספרייה של Supabase
     document.addEventListener('DOMContentLoaded', () => {
-      if (!window.jokeAuth) return;
-      window.jokeAuth.onChange(renderAccount);
-      window.jokeAuth.ready().catch((err) => console.error('auth', err.message));
+      if (window.jokeAuth) {
+        window.jokeAuth.onChange(onAuthChange);
+        authReady = window.jokeAuth.ready()
+          .catch((err) => console.error('auth', err.message))
+          .finally(() => { authSettled = true; });
+      }
+      route();
     });
-
-    loadTop();
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
